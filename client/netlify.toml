@@ -1,0 +1,21 @@
+# Fallback config for when the Netlify UI has "Base directory" set to `client`.
+#
+# Netlify only reads netlify.toml from the base directory. With a base set, the
+# one in the repo root is ignored entirely — so this file makes the build
+# correct either way, whether base is empty or `client`.
+#
+# Paths here are relative to client/.
+
+[build]
+  # No --prefix and no "client/" anywhere: Netlify has already cd'd into this
+  # directory. Repeating it here is what produced client/client/dist.
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
