@@ -111,6 +111,22 @@ Everything is then on one port. No CORS, no `VITE_API_URL`, and no chance of a
 static server handing the browser `application/octet-stream` for a module
 script. Set `CLIENT_ORIGIN` to that one public origin.
 
+### Netlify (client only)
+
+`netlify.toml` in the repo root already has the right build command, publish
+directory and SPA redirect. **Netlify hosts the client only** — the Express +
+MongoDB API cannot run there, so it needs its own host.
+
+1. Deploy `server/` to Railway, Render, Fly, or a VPS. Note its public URL.
+2. Netlify → Site settings → Environment variables → set
+   `VITE_API_URL=https://your-api-host` and redeploy. It is compiled into the
+   bundle at **build** time, so changing it always needs a fresh deploy.
+3. On the API, set `CLIENT_ORIGIN=https://your-site.netlify.app`. That drives
+   CORS *and* the URL inside every QR code.
+
+Without step 2 the site loads but every request 404s against Netlify, because
+the client falls back to a relative `/api` that does not exist there.
+
 ### Split (API and client on different hosts)
 
 **Server** — needs a persistent disk for `server/uploads/`, so a VPS or a

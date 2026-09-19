@@ -1,0 +1,23 @@
+# Netlify hosts the CLIENT ONLY. The Express + MongoDB API in server/ cannot run
+# here — deploy that to Railway / Render / Fly / a VPS and point VITE_API_URL at
+# it (Site settings → Environment variables). It is read at BUILD time, so
+# changing it requires a redeploy.
+
+[build]
+  # Run from the repo root and name the client explicitly. This avoids the
+  # `base` + `publish` ambiguity that silently publishes the wrong folder —
+  # which serves the un-built index.html, whose /src/main.jsx comes back as
+  # application/octet-stream and is rejected as a module script.
+  command = "npm --prefix client ci && npm --prefix client run build"
+  publish = "client/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The invitation routes are client-side, so every unmatched path must return the
+# app shell. Real files (/assets/*) still win over this rule — Netlify serves an
+# existing file before applying a redirect.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
