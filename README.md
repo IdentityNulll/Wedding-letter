@@ -94,7 +94,24 @@ the admin edits the real thing rather than a preview that can drift.
 
 ## Deploying
 
-The two halves go to different places.
+Two options. **Single-origin is simpler and is what I'd start with.**
+
+### Single origin (one server serves everything)
+
+Build the client; the API picks up `client/dist` automatically and serves it
+with correct MIME types plus SPA fallback, so deep links like
+`/azizbek-nargiza` survive a refresh.
+
+```bash
+cd client && npm ci && npm run build
+cd ../server && npm ci && npm start
+```
+
+Everything is then on one port. No CORS, no `VITE_API_URL`, and no chance of a
+static server handing the browser `application/octet-stream` for a module
+script. Set `CLIENT_ORIGIN` to that one public origin.
+
+### Split (API and client on different hosts)
 
 **Server** — needs a persistent disk for `server/uploads/`, so a VPS or a
 container host with a volume (Railway, Render, Fly). Not a serverless function.
@@ -121,7 +138,12 @@ Three things that will burn you:
 2. **`VITE_API_URL` is baked in at build time**, not read at runtime. Changing it
    means rebuilding the client.
 3. **Configure SPA fallback** on the static host — every unknown path must serve
-   `index.html`, or `/azizbek-nargiza` 404s on refresh.
+   `index.html`, or `/azizbek-nargiza` 404s on refresh. (Single-origin mode does
+   this for you.)
+4. **Never open `client/dist/index.html` off disk.** The bundle uses absolute
+   `/assets/…` paths and ES modules; `file://` and naive static servers hand the
+   browser `application/octet-stream`, which every browser rejects for module
+   scripts. Serve it — single-origin mode, `npm run preview`, or a real host.
 
 ## Not built yet
 

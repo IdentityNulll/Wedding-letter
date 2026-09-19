@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import "dotenv/config";
@@ -33,6 +34,29 @@ app.use("/api/auth", authRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api", mediaRoutes);
+
+/* ── Serve the built client, if it has been built ───────────────────────
+   Optional: in development you run Vite separately on :5173. But for a
+   single-origin production deploy this makes the API serve the SPA too, which
+   removes two whole classes of problem:
+
+     · MIME types — express.static sets text/javascript for .js. Opening
+       dist/index.html straight off disk, or serving it with a static server
+       that does not know the extension, hands the browser
+       application/octet-stream and every module script is rejected.
+     · Deep links — /azizbek-nargiza is a client route with no file behind it,
+       so without the fallback below it 404s on refresh.                       */
+const clientDist = path.join(__dirname, "..", "..", "client", "dist");
+
+if (fs.existsSync(path.join(clientDist, "index.html"))) {
+  app.use(express.static(clientDist));
+
+  app.get("*", (req, res, next) => {
+    // Never swallow the API or uploads — they must keep their real responses.
+    if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) return next();
+    res.sendFile(path.join(clientDist, "index.html"));
+  });
+}
 
 app.use((_req, res) => res.status(404).json({ error: "not found" }));
 
