@@ -1,0 +1,284 @@
+@import "tailwindcss";
+
+/* ── Palettes ────────────────────────────────────────────────────────────
+   One layout, seven colourways. Everything reads these vars, so switching a
+   theme never touches a component. */
+
+[data-theme="zar"] {
+  --paper: #fbf6ec; --paper-2: #f4ead6; --ink: #2a1a16; --ink-soft: #6b5548;
+  --accent: #7b1e2b; --accent-deep: #4e1019; --gold: #c9a227; --gold-2: #efd98a;
+  --seal: #8e1b2a; --envelope: #f2e4cc; --envelope-2: #e3cfae; --cover: #5c1420;
+}
+[data-theme="firuza"] {
+  --paper: #f5faf9; --paper-2: #e3f2ef; --ink: #10302e; --ink-soft: #4a6b68;
+  --accent: #147c77; --accent-deep: #0b4c49; --gold: #c9a227; --gold-2: #efd98a;
+  --seal: #0f6b66; --envelope: #dcf0ec; --envelope-2: #c2e0da; --cover: #0c4a47;
+}
+[data-theme="anor"] {
+  --paper: #fdf4f1; --paper-2: #f9e6e0; --ink: #33130f; --ink-soft: #74483f;
+  --accent: #a81e28; --accent-deep: #6e0f17; --gold: #d4a24c; --gold-2: #f2d59b;
+  --seal: #8c1620; --envelope: #f7ded6; --envelope-2: #eec8bc; --cover: #6d1018;
+}
+[data-theme="zaytun"] {
+  --paper: #f8f7ee; --paper-2: #eeedd9; --ink: #262a16; --ink-soft: #5d6344;
+  --accent: #5e6b33; --accent-deep: #3a4320; --gold: #b08d3f; --gold-2: #e3c887;
+  --seal: #55632d; --envelope: #e9e7d0; --envelope-2: #d7d4b6; --cover: #39421f;
+}
+[data-theme="siyoh"] {
+  --paper: #f4f5f8; --paper-2: #e4e8f0; --ink: #131a2b; --ink-soft: #4e5a75;
+  --accent: #22355c; --accent-deep: #101b33; --gold: #b9a46a; --gold-2: #e6d7a8;
+  --seal: #1c2c4c; --envelope: #dde2ec; --envelope-2: #c6cedd; --cover: #101b33;
+}
+[data-theme="gul"] {
+  --paper: #fdf5f3; --paper-2: #f8e5e1; --ink: #33201f; --ink-soft: #77534f;
+  --accent: #9e5560; --accent-deep: #6b333d; --gold: #c08457; --gold-2: #e8bc95;
+  --seal: #904c56; --envelope: #f6e0dc; --envelope-2: #ecc8c1; --cover: #6a323c;
+}
+[data-theme="qahrabo"] {
+  --paper: #fdf6eb; --paper-2: #f7e8ce; --ink: #331f12; --ink-soft: #7a5740;
+  --accent: #b05a28; --accent-deep: #7a3a15; --gold: #ce9a3e; --gold-2: #f0cf8c;
+  --seal: #9c4a1e; --envelope: #f7e3c9; --envelope-2: #ecceaa; --cover: #79390f;
+}
+
+:root { color-scheme: light; }
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  color: var(--ink, #2a1a16);
+  font-family: "PT Serif", Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display { font-family: "Cormorant Garamond", Georgia, serif; }
+.font-script  { font-family: "Marck Script", cursive; }
+
+/* Parchment: layered gradients + fractal noise, no image requests — the page
+   must stay light on a phone on patchy mobile data. */
+.parchment {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--gold) 9%, transparent), transparent 55%),
+    radial-gradient(ellipse at 85% 85%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.foil {
+  background: linear-gradient(100deg,
+    var(--gold) 0%, var(--gold-2) 22%, var(--gold) 42%,
+    var(--accent-deep) 55%, var(--gold) 70%, var(--gold-2) 88%, var(--gold) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: foil-sweep 9s ease-in-out infinite;
+}
+@keyframes foil-sweep {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+.frame {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  outline: 1px solid color-mix(in srgb, var(--gold) 28%, transparent);
+  outline-offset: 5px;
+}
+
+.dropcap::first-letter {
+  float: left;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding: 0.07em 0.1em 0 0;
+  color: var(--accent);
+  text-shadow: 1px 1px 0 color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+/* ══ THE BOOK ═══════════════════════════════════════════════════════════
+   A physical object sitting on a surface, not a web page. Four things sell it:
+   a hard cover edge, a stitched spine, visible stacked page edges giving real
+   thickness, and a shadow that grounds it.                                  */
+
+.desk {
+  /* The surface the book rests on. */
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--cover) 55%, #000) 0%, #0d0b0a 70%);
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+
+.book {
+  position: relative;
+  width: 100%;
+  height: min(100dvh - 2rem, 54rem);
+  margin-inline: auto;
+  /* The hard cover peeking out behind the pages on every side. */
+  padding: 6px 7px 6px 10px;
+  border-radius: 6px 12px 12px 6px;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--cover) 88%, #fff 6%),
+      var(--cover) 40%,
+      color-mix(in srgb, var(--cover) 70%, #000) 100%);
+  box-shadow:
+    0 2px 2px rgba(0,0,0,.35),
+    0 18px 40px -12px rgba(0,0,0,.75),
+    0 40px 90px -30px rgba(0,0,0,.9),
+    inset 0 0 0 1px color-mix(in srgb, var(--gold) 28%, transparent);
+}
+
+/* Gold rule embossed into the cover. */
+.book::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 5px 10px 10px 5px;
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.book-block {
+  position: relative;
+  height: 100%;
+  border-radius: 3px 8px 8px 3px;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* Stacked page edges down the fore-edge — this is what reads as thickness. */
+.book-block::after {
+  content: "";
+  position: absolute;
+  top: 5px; bottom: 5px; right: 0;
+  width: 7px;
+  z-index: 25;
+  pointer-events: none;
+  border-radius: 0 6px 6px 0;
+  background: repeating-linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ink) 22%, transparent) 0 1px,
+    color-mix(in srgb, var(--paper) 90%, #fff) 1px 2px
+  );
+  box-shadow: inset -1px 0 2px rgba(0,0,0,.35);
+}
+
+/* Binding gutter: the shadow where pages curve into the spine. */
+.gutter {
+  position: absolute;
+  inset-block: 0; left: 0;
+  width: 26px;
+  z-index: 24;
+  pointer-events: none;
+  background: linear-gradient(to right,
+    color-mix(in srgb, var(--ink) 30%, transparent) 0%,
+    color-mix(in srgb, var(--ink) 12%, transparent) 30%,
+    color-mix(in srgb, var(--ink) 3%, transparent) 70%,
+    transparent 100%);
+}
+
+/* Thread stitching on the spine. */
+.stitch {
+  position: absolute;
+  top: 8%; bottom: 8%; left: 3px;
+  width: 2px;
+  z-index: 4;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--gold) 55%, transparent) 0 10px,
+    transparent 10px 20px
+  );
+  opacity: .5;
+}
+
+/* ── Page turning ───────────────────────────────────────────────────────
+   The leaf rotates about the spine while the next page sits underneath,
+   already painted. Only transform/opacity animate, so it stays on the
+   compositor — smooth on a mid-range Android.                              */
+
+.stage { perspective: 2200px; perspective-origin: 0% 50%; }
+
+@keyframes leaf-fwd  { from { transform: rotateY(0deg); }    to { transform: rotateY(-170deg); } }
+@keyframes leaf-back { from { transform: rotateY(-170deg); } to { transform: rotateY(0deg); } }
+/* Paper darkens as it lifts and catches light, then flattens again. */
+@keyframes leaf-shade { 0% { opacity: 0; } 45% { opacity: .42; } 100% { opacity: 0; } }
+/* The shadow the lifting leaf casts on the page beneath it. */
+@keyframes leaf-cast  { 0% { opacity: .55; } 100% { opacity: 0; } }
+
+.leaf {
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+  box-shadow: 16px 0 40px -16px rgba(0,0,0,.6);
+}
+.leaf.fwd  { animation: leaf-fwd  .78s cubic-bezier(.42,.02,.28,1) forwards; }
+.leaf.back { animation: leaf-back .78s cubic-bezier(.42,.02,.28,1) forwards; }
+.leaf-shade { animation: leaf-shade .78s ease both; }
+.leaf-cast  { animation: leaf-cast  .78s ease-out both; }
+
+/* Content settling in as a page arrives. */
+@keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.enter > * { animation: rise-in .5s cubic-bezier(.2,.7,.3,1) both; }
+.enter > *:nth-child(2) { animation-delay: .06s; }
+.enter > *:nth-child(3) { animation-delay: .12s; }
+.enter > *:nth-child(4) { animation-delay: .18s; }
+.enter > *:nth-child(5) { animation-delay: .24s; }
+
+/* ── Envelope ───────────────────────────────────────────────────────────── */
+
+@keyframes seal-crack {
+  0%   { transform: translateX(-50%) scale(1) rotate(0); }
+  35%  { transform: translateX(-50%) scale(1.18) rotate(-6deg); }
+  100% { transform: translateX(-50%) scale(.55) rotate(24deg) translateY(90px); opacity: 0; }
+}
+@keyframes flap-open    { from { transform: rotateX(0); } to { transform: rotateX(-172deg); } }
+@keyframes letter-out   { from { transform: translateY(0); } to { transform: translateY(-62%); } }
+@keyframes unfold       { from { transform: rotateX(-180deg); } to { transform: rotateX(0deg); } }
+@keyframes letter-zoom  { from { transform: translateY(-62%) scale(1); opacity: 1; }
+                          to   { transform: translateY(-62%) scale(2.1); opacity: 0; } }
+@keyframes env-sink     { to { transform: translateY(40px); opacity: 0; } }
+@keyframes fade-away    { to { opacity: 0; visibility: hidden; } }
+
+.env-open .env-seal   { animation: seal-crack .5s cubic-bezier(.5,-.3,.7,1) forwards; }
+.env-open .env-flap   { animation: flap-open .75s cubic-bezier(.55,.05,.25,1) .25s forwards; }
+.env-open .env-letter { animation: letter-out .7s cubic-bezier(.35,.1,.25,1) .85s forwards,
+                                   letter-zoom .55s ease-in 2.15s forwards; }
+.env-open .env-fold   { animation: unfold .7s cubic-bezier(.4,.05,.25,1) 1.45s forwards; }
+/* Starts with the unfold, not after: the lower panel swings down through the
+   pocket's layer, so the pocket must already be on its way out. */
+.env-open .env-pocket,
+.env-open .env-body   { animation: env-sink .55s ease-in 1.45s forwards; }
+.env-open .env-hint   { animation: fade-away .3s ease forwards; }
+.env-open .env-stage  { animation: fade-away .45s ease 2.5s forwards; }
+
+.env-flap, .env-fold { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+/* ── Ambient motes ──────────────────────────────────────────────────────── */
+
+@keyframes drift {
+  from { transform: translate3d(0, 8vh, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: var(--mote-peak, .5); }
+  90%  { opacity: var(--mote-peak, .5); }
+  to   { transform: translate3d(var(--dx, 3vw), -102vh, 0) rotate(var(--spin, 180deg)); opacity: 0; }
+}
+.mote {
+  position: absolute;
+  bottom: -6vh;
+  border-radius: 9999px;
+  will-change: transform, opacity;
+  animation: drift linear infinite;
+}
+
+.no-bar { scrollbar-width: none; }
+.no-bar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .foil { animation: none; }
+  .mote { display: none; }
+  .enter > * { animation: none !important; }
+  .leaf, .leaf-shade, .leaf-cast,
+  .env-open * { animation-duration: .01ms !important; animation-delay: 0ms !important; }
+}

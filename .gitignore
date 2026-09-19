@@ -1,10 +1,7 @@
 node_modules/
-.next/
-next-env.d.ts
-*.tsbuildinfo
-
-# Local data + uploaded photos — never commit client wedding data
-data/
-public/uploads/
+dist/
 .env
 .env.local
+
+# Guest photos and audio — data, not code. Back these up separately.
+server/uploads/

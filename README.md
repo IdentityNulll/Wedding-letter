@@ -1,130 +1,132 @@
 # Taklifnoma — online wedding invitations
 
-One Next.js app that serves every invitation. Creating an invitation is a
-single database row, so a new link is live the instant it's saved — there is no
-per-invitation build or deploy.
+Two separate apps.
 
 ```
-/                     landing
-/<slug>               the public invitation      e.g. /azizbek-nargiza
-/qr/<slug>?format=svg print-ready QR (svg | png)
-/admin                invitation list            (password protected)
-/admin/<id>           the editor
+server/   Node + Express + MongoDB   → the API          (deploy to a Node host)
+client/   React + Vite + Tailwind    → the static site  (deploy to any static host / CDN)
 ```
+
+They talk over HTTP only. You can deploy them to different servers.
 
 ## Running locally
 
-```bash
-npm install
-cp .env.example .env.local   # then fill in ADMIN_PASSWORD and SESSION_SECRET
-npm run dev
-```
+Two terminals.
 
-Generate a session secret with:
+**Terminal 1 — API**
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+cd server && npm install && cp .env.example .env
 ```
 
-Sample data (run once the app has booted and created the schema):
+Fill in `.env` (generate the secret with the command in the file), then:
 
 ```bash
-node scripts/seed.mjs
+cd server && npm run seed && npm run dev
 ```
 
-## How it's put together
+**Terminal 2 — client**
 
-| Piece | Where |
-|---|---|
-| Schema, queries, migrations | `src/lib/db.ts` |
-| The 7 colourways | `src/lib/themes.ts` + `[data-theme]` blocks in `src/app/globals.css` |
-| Guest-facing strings (uz / ru) | `src/lib/types.ts` → `UI` |
-| The invitation, as page content | `src/components/invitation/InvitationView.tsx` |
-| Page-turning mechanics | `src/components/invitation/Book.tsx` |
-| Envelope opening | `src/components/EnvelopeGate.tsx` + `globals.css` |
-| Inline admin editor | `src/components/admin/InlineEditor.tsx` |
-| Venue search | `src/components/admin/LocationPicker.tsx` + `src/app/api/geocode/route.ts` |
+```bash
+cd client && npm install && npm run dev
+```
 
-### The book
+Open http://localhost:5173 — the seeded invitation is at `/azizbek-nargiza`,
+the admin at `/admin`.
 
-The invitation is a book, not a scrolling page: one section per leaf, turned
-with the arrows, a swipe, or the arrow keys. `InvitationView` assembles the
-`leaves` array — a leaf only exists when its toggle is on and it has content —
-and `Book` handles paging and the 3D turn.
+In dev, Vite proxies `/api` and `/uploads` to `localhost:4000`, so there is no
+CORS and no absolute URLs in the client.
 
-`InvitationView` is rendered by *both* the public page and the admin, so the
-admin edits the real thing rather than a preview that can drift out of sync.
-`EditContext` supplies the pencil affordances; with no provider (the public
-page) `<Edit>` renders its children untouched and costs nothing.
+## API
 
-Data lives in `data/wedding.db` (SQLite, WAL mode). Uploads go to
-`public/uploads/`. **Both are gitignored — back them up; they are the product.**
+| Method | Path | Auth |
+|---|---|---|
+| POST | `/api/auth/login` | — |
+| GET | `/api/public/:slug` | — |
+| POST | `/api/public/:slug/messages` | — (rate limited) |
+| GET POST | `/api/invitations` | admin |
+| GET PUT DELETE | `/api/invitations/:id` | admin |
+| PATCH DELETE | `/api/invitations/messages/:id` | admin |
+| POST | `/api/upload` | admin |
+| GET | `/api/geocode?q=` | admin |
+| GET | `/api/qr/:slug?format=svg\|png` | — |
 
-### Design rules worth keeping
+Auth is a JWT in `Authorization: Bearer …`, held in localStorage.
 
-- **Every section fails soft.** A section renders only when its toggle is on
-  *and* it has data. An admin who enables "Gallery" but uploads nothing gets a
-  shorter page, never an empty box.
+## The book
+
+The invitation is a physical book, not a scrolling page: hard cover, stitched
+spine, stacked page edges along the fore-edge for real thickness, and leaves
+that rotate about the binding. Turn with the arrows, a swipe, or arrow keys.
+
+- `client/src/components/Book.jsx` — paging and turn mechanics
+- `client/src/components/InvitationView.jsx` — builds the `leaves` array
+- `.book`, `.book-block`, `.gutter`, `.stitch`, `.leaf` in `client/src/index.css`
+
+`InvitationView` is rendered by both the public page and the admin editor, so
+the admin edits the real thing rather than a preview that can drift.
+
+## Rules worth keeping
+
+- **Every page fails soft.** A page renders only when its toggle is on *and* it
+  has content. An admin who enables "Gallery" but uploads nothing gets a shorter
+  book, never an empty page.
 - **Fonts must carry Cyrillic.** Invitations are written in Uzbek Latin *and*
-  Russian/Cyrillic, which rules out most calligraphic display faces. The
-  medieval feel comes from ornaments and layout instead. Check any new font for
-  a `cyrillic` subset before adding it.
+  Russian/Cyrillic, which rules out most calligraphic faces. Check any new font
+  for a `cyrillic` subset.
 - **Themes never touch components.** A colourway is only CSS variables. If you
-  find yourself branching on `theme` in a component, something has gone wrong.
-- **Phone first.** Verified with no horizontal overflow and ≥44px tap targets
-  down to 320px wide, on every page of the book and in the admin.
+  branch on `theme` inside a component, something has gone wrong.
 - **Never gate UI state on `animationend` alone.** That event is skipped
-  whenever the page isn't compositing — a backgrounded tab, a throttled device,
-  an interrupted animation — and one missed event would jam paging forever.
-  `Book` always arms a timer as the authority; the event is only a faster path
-  to the same call. (This bit us: the book locked after one turn.)
+  whenever the page isn't compositing — backgrounded tab, throttled device,
+  interrupted animation — and one missed event jams paging forever. `Book`
+  always arms a timer as the authority; the event is only a faster path.
 - **`overflow-x: clip`, never `overflow-x: hidden`.** Setting one axis to
-  `hidden` silently forces the other from `visible` to `auto`, turning the
-  element into a scroll container. That broke IntersectionObserver and left a
-  whole section stuck at `opacity: 0`.
-- **Animation is transform/opacity only.** `Ambient` caps its particle count,
-  drops it further on low-core devices, pauses on tab hide, and renders nothing
-  under `prefers-reduced-motion`. A guest on a mid-range Android should never
-  feel this page work.
+  `hidden` silently forces the other from `visible` to `auto`, making the
+  element a scroll container.
+- **Shared input class strings carry no width.** Callers set their own. Baking
+  `w-full` into a shared class beats any narrower `w-*` a caller adds, because
+  CSS source order wins — not the order of names in `className`.
+- **A `width: 100%` child needs a parent with a definite width.** `.book` inside
+  a bare flex item resolved 100% against its own content and collapsed to 17px.
+- **Animation is transform/opacity only**, so it stays on the compositor. Motes
+  cap their count, drop it on low-core devices, pause on tab hide, and render
+  nothing under `prefers-reduced-motion`.
 
 ## Deploying
 
-Any Node host works. On a VPS:
+The two halves go to different places.
+
+**Server** — needs a persistent disk for `server/uploads/`, so a VPS or a
+container host with a volume (Railway, Render, Fly). Not a serverless function.
 
 ```bash
-npm ci && npm run build && npm start   # behind a reverse proxy on :3000
+cd server && npm ci && npm start
 ```
 
-Put Caddy or nginx in front for TLS. Two things that matter:
+Set `PORT`, `MONGODB_URI`, `ADMIN_PASSWORD`, `JWT_SECRET`, and `CLIENT_ORIGIN`.
+Use MongoDB Atlas unless you want to run and back up Mongo yourself.
 
-1. **Set `NEXT_PUBLIC_SITE_URL` to the real public origin.** QR codes encode it.
-   Get this wrong and you print QR codes pointing at `localhost`.
-2. **The proxy must forward `x-forwarded-for`.** The guestbook rate limiter keys
-   off it; without it, flood protection silently does nothing. Caddy sends it by
-   default; nginx needs `proxy_set_header X-Forwarded-For $remote_addr;`.
-3. **Venue search calls Nominatim**, OpenStreetMap's free geocoder. It is rate
-   limited to ~1 req/sec (enforced server-side in `/api/geocode`) and asks for a
-   real User-Agent. Fine at this volume; if the product grows, move to Yandex
-   Geocoder, which has far better Uzbek address coverage anyway.
+**Client** — a static bundle, so anything: Netlify, Vercel, Cloudflare Pages,
+or nginx.
 
-### Later: subdomains instead of paths
+```bash
+cd client && npm ci && VITE_API_URL=https://api.yourdomain.uz npm run build
+# serve client/dist
+```
 
-Currently `site.uz/azizbek-nargiza`. To move to
-`azizbek-nargiza.site.uz`, nothing about the app's architecture changes — add a
-wildcard DNS record `*.site.uz`, get a wildcard certificate (Caddy does this
-automatically over DNS-01), and read the subdomain off the `Host` header in
-middleware instead of the path. Still one row per invitation, still instant.
+Three things that will burn you:
+
+1. **`CLIENT_ORIGIN` must be the real site origin.** It drives CORS *and* the URL
+   encoded into QR codes — wrong value means QR codes pointing at localhost.
+2. **`VITE_API_URL` is baked in at build time**, not read at runtime. Changing it
+   means rebuilding the client.
+3. **Configure SPA fallback** on the static host — every unknown path must serve
+   `index.html`, or `/azizbek-nargiza` 404s on refresh.
 
 ## Not built yet
 
-- **Image resizing on upload** — the most urgent one. Originals are served
-  as-is, so a 6 MB phone photo reaches the guest at 6 MB.
-- RSVP (guests confirming attendance) — one table plus one admin view
-- Per-guest personalised links (`?g=akmal-aka` → "Hurmatli Akmal aka")
-- Print-ready PDF of the paper invitation from the same data
-- Multiple templates (*shablon*) — today there is one layout in seven
-  colourways. A second template means a second `InvitationView`-shaped
-  component selected by a column on `invitations`; the book, themes, data layer
-  and admin all carry over unchanged.
-- A draggable map pin. Search covers the common case, but Uzbek addresses are
-  often imprecise; Leaflet would let the admin nudge the marker.
+- **Image resizing on upload** — the most urgent. Originals are served as-is, so
+  a 6 MB phone photo reaches the guest at 6 MB.
+- Uploads live on the API server's disk. Move to S3/R2 before running more than
+  one instance.
+- RSVP, per-guest personalised links, print-ready PDF, multiple templates.
