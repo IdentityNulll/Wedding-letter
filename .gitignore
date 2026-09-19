@@ -1,0 +1,10 @@
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local data + uploaded photos — never commit client wedding data
+data/
+public/uploads/
+.env
+.env.local
