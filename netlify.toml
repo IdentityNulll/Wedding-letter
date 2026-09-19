@@ -4,12 +4,16 @@
 # changing it requires a redeploy.
 
 [build]
-  # Run from the repo root and name the client explicitly. This avoids the
-  # `base` + `publish` ambiguity that silently publishes the wrong folder —
-  # which serves the un-built index.html, whose /src/main.jsx comes back as
-  # application/octet-stream and is rejected as a module script.
-  command = "npm --prefix client ci && npm --prefix client run build"
-  publish = "client/dist"
+  # These paths are relative to the Netlify "Base directory", which is set to
+  # `client` in the site UI — Netlify has already cd'd there before running
+  # this. So no `client/` prefix and no --prefix: adding either produces
+  # client/client/dist and the build fails.
+  #
+  # IF YOU EVER CLEAR THE BASE DIRECTORY, change these to:
+  #   command = "npm --prefix client ci && npm --prefix client run build"
+  #   publish = "client/dist"
+  command = "npm ci && npm run build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "22"
