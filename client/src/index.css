@@ -46,12 +46,16 @@ html, body, #root { height: 100%; }
 body {
   margin: 0;
   color: var(--ink, #2a1a16);
-  font-family: "PT Serif", Georgia, serif;
+  /* Cormorant is a high-contrast display face; at body sizes it needs a little
+     extra weight and size to stay readable on a phone. */
+  font-family: "Cormorant Garamond", "Times New Roman", serif;
+  font-weight: 500;
   -webkit-font-smoothing: antialiased;
 }
 
-.font-display { font-family: "Cormorant Garamond", Georgia, serif; }
-.font-script  { font-family: "Marck Script", cursive; }
+.font-display { font-family: "Cormorant Garamond", "Times New Roman", serif; }
+/* Great Vibes is Latin-only — Marck Script catches Cyrillic glyph by glyph. */
+.font-script  { font-family: "Great Vibes", "Marck Script", cursive; }
 
 /* Parchment: layered gradients + fractal noise, no image requests — the page
    must stay light on a phone on patchy mobile data. */
@@ -193,40 +197,6 @@ body {
   opacity: .5;
 }
 
-/* ── Page turning ───────────────────────────────────────────────────────
-   The leaf rotates about the spine while the next page sits underneath,
-   already painted. Only transform/opacity animate, so it stays on the
-   compositor — smooth on a mid-range Android.                              */
-
-.stage { perspective: 2200px; perspective-origin: 0% 50%; }
-
-@keyframes leaf-fwd  { from { transform: rotateY(0deg); }    to { transform: rotateY(-170deg); } }
-@keyframes leaf-back { from { transform: rotateY(-170deg); } to { transform: rotateY(0deg); } }
-/* Paper darkens as it lifts and catches light, then flattens again. */
-@keyframes leaf-shade { 0% { opacity: 0; } 45% { opacity: .42; } 100% { opacity: 0; } }
-/* The shadow the lifting leaf casts on the page beneath it. */
-@keyframes leaf-cast  { 0% { opacity: .55; } 100% { opacity: 0; } }
-
-.leaf {
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  will-change: transform;
-  box-shadow: 16px 0 40px -16px rgba(0,0,0,.6);
-}
-.leaf.fwd  { animation: leaf-fwd  .78s cubic-bezier(.42,.02,.28,1) forwards; }
-.leaf.back { animation: leaf-back .78s cubic-bezier(.42,.02,.28,1) forwards; }
-.leaf-shade { animation: leaf-shade .78s ease both; }
-.leaf-cast  { animation: leaf-cast  .78s ease-out both; }
-
-/* Content settling in as a page arrives. */
-@keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-.enter > * { animation: rise-in .5s cubic-bezier(.2,.7,.3,1) both; }
-.enter > *:nth-child(2) { animation-delay: .06s; }
-.enter > *:nth-child(3) { animation-delay: .12s; }
-.enter > *:nth-child(4) { animation-delay: .18s; }
-.enter > *:nth-child(5) { animation-delay: .24s; }
-
 /* ── Envelope ───────────────────────────────────────────────────────────── */
 
 @keyframes seal-crack {
@@ -278,7 +248,5 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .foil { animation: none; }
   .mote { display: none; }
-  .enter > * { animation: none !important; }
-  .leaf, .leaf-shade, .leaf-cast,
   .env-open * { animation-duration: .01ms !important; animation-delay: 0ms !important; }
 }

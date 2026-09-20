@@ -20,12 +20,35 @@ const app = express();
 // limiter depends on this being right.
 app.set("trust proxy", 1);
 
-const origins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
+/** Allowed browser origins, comma separated. Trailing slashes are stripped on
+ *  both sides: CLIENT_ORIGIN is usually pasted from a browser bar with a "/",
+ *  but the Origin header never has one, and a literal compare silently fails
+ *  every preflight with no clue why. */
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
   .split(",")
-  .map((s) => s.trim())
+  .map((s) => s.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
-app.use(cors({ origin: origins.includes("*") ? true : origins }));
+const allowAllOrigins = allowedOrigins.includes("*");
+
+app.use(
+  cors({
+    origin(origin, cb) {
+      // No Origin header: curl, server-to-server, or same-origin. Not a
+      // browser cross-origin request, so there is nothing to police.
+      if (!origin || allowAllOrigins) return cb(null, true);
+
+      if (allowedOrigins.includes(origin.replace(/\/+$/, ""))) return cb(null, true);
+
+      // Refusing without an error keeps this a clean browser-side CORS block
+      // rather than a 500, and the log names both sides of the mismatch.
+      console.warn(
+        `[cors] blocked "${origin}" — CLIENT_ORIGIN allows: ${allowedOrigins.join(", ") || "(none)"}`,
+      );
+      cb(null, false);
+    },
+  }),
+);
 app.use(express.json({ limit: "1mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads"), { maxAge: "30d" }));
 
@@ -69,7 +92,12 @@ const PORT = Number(process.env.PORT || 4000);
 
 connectDb()
   .then(() => {
-    app.listen(PORT, () => console.log(`API listening on http://localhost:${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`API listening on port ${PORT}`);
+      // Printed every boot so a CORS failure can be diagnosed from the deploy
+      // log alone, without guessing at what the variable actually contains.
+      console.log(`CORS allowed origins: ${allowedOrigins.join(", ") || "(none)"}`);
+    });
   })
   .catch((err) => {
     console.error("\nCould not start: " + err.message + "\n");

@@ -7,10 +7,13 @@
     <title>Taklifnoma</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Cormorant Garamond / PT Serif / Marck Script all carry Cyrillic, which
-         most calligraphic faces do not. Uzbek invitations need both scripts. -->
+    <!-- Cormorant Garamond carries Cyrillic and does the body + display work.
+         Great Vibes is the calligraphic face but is Latin-only, so Marck Script
+         sits behind it in the stack: CSS falls back per glyph, which means
+         Latin names render in Great Vibes while Cyrillic stays readable
+         instead of dropping to a default sans. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Marck+Script&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Great+Vibes&family=Marck+Script&display=swap"
       rel="stylesheet"
     />
   </head>

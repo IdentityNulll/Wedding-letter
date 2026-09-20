@@ -17,9 +17,9 @@ const WRITABLE = [
   "greetingTitle", "greetingBody", "inviteFrom",
   "venueName", "venueAddress", "venueLat", "venueLng",
   "schedule", "contacts", "gallery",
-  "musicUrl", "heroImage", "giftCardNumber", "giftCardHolder",
+  "musicUrl", "heroImage",
   "showCountdown", "showCalendar", "showMap", "showSchedule", "showGallery",
-  "showContacts", "showMusic", "showGift", "showGuestbook",
+  "showContacts", "showMusic", "showGuestbook",
 ];
 
 function pick(body) {

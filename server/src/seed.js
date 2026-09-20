@@ -37,9 +37,6 @@ const inv = await Invitation.create({
     { name: "Akmal aka", phone: "+998 90 123 45 67" },
     { name: "Dilnoza opa", phone: "+998 91 234 56 78" },
   ],
-  giftCardNumber: "8600123456789012",
-  giftCardHolder: "AZIZBEK KARIMOV",
-  showGift: true,
 });
 
 await Message.create([

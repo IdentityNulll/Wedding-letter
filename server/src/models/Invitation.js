@@ -33,8 +33,6 @@ const InvitationSchema = new Schema(
 
     musicUrl: { type: String, default: "" },
     heroImage: { type: String, default: "" },
-    giftCardNumber: { type: String, default: "" },
-    giftCardHolder: { type: String, default: "" },
 
     showCountdown: { type: Boolean, default: true },
     showCalendar: { type: Boolean, default: true },
@@ -42,8 +40,7 @@ const InvitationSchema = new Schema(
     showSchedule: { type: Boolean, default: true },
     showGallery: { type: Boolean, default: false },
     showContacts: { type: Boolean, default: true },
-    showMusic: { type: Boolean, default: false },
-    showGift: { type: Boolean, default: false },
+    showMusic: { type: Boolean, default: true },
     showGuestbook: { type: Boolean, default: true },
   },
   { timestamps: true },

@@ -22,7 +22,6 @@ const TITLES = {
   schedule: "Tadbir dasturi",
   contacts: "Aloqa raqamlari",
   gallery: "Galereya",
-  gift: "To'y sovg'asi",
 };
 
 /** The admin edits the real invitation in place: the live book is rendered from
@@ -211,13 +210,6 @@ export default function AdminEdit() {
                 </>
               )}
 
-              {panel === "gift" && (
-                <>
-                  <Text label="Karta raqami" value={draft.giftCardNumber} onChange={(v) => set("giftCardNumber", v)} placeholder="8600 1234 5678 9012" />
-                  <Text label="Karta egasi" value={draft.giftCardHolder} onChange={(v) => set("giftCardHolder", v)} placeholder="AZIZBEK KARIMOV" />
-                </>
-              )}
-
               {panel === "theme" && (
                 <>
                   <div>
@@ -279,7 +271,6 @@ export default function AdminEdit() {
                       <Toggle label="Galereya" checked={draft.showGallery} onChange={(v) => set("showGallery", v)} />
                       <Toggle label="Aloqa raqamlari" checked={draft.showContacts} onChange={(v) => set("showContacts", v)} />
                       <Toggle label="Fon musiqasi" checked={draft.showMusic} onChange={(v) => set("showMusic", v)} />
-                      <Toggle label="To'y sovg'asi" checked={draft.showGift} onChange={(v) => set("showGift", v)} />
                       <Toggle label="Mehmonlar kitobi" checked={draft.showGuestbook} onChange={(v) => set("showGuestbook", v)} />
                     </div>
                   </fieldset>
