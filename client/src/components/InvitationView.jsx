@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { mediaUrl } from "../lib/api";
 import { UI, themeOr, formatLongDate, formatTime, parseEventDate } from "../lib/i18n";
-import { Ambient, Calendar, Corner, Countdown, Divider, Monogram, MusicPlayer, PageHead } from "./Bits";
+import { useReveal } from "../lib/useReveal";
+import { Ambient, Calendar, Countdown, Divider, Monogram, MusicPlayer, PageHead } from "./Bits";
+import { FloralCorner, FloralDivider, Petals, Sprig } from "./Floral";
 import { Gallery, Guestbook } from "./Guestbook";
 import EnvelopeGate from "./EnvelopeGate";
 
@@ -12,6 +14,7 @@ import EnvelopeGate from "./EnvelopeGate";
  *  `onEdit` turns on the pencil affordances; without it they cost nothing. */
 export default function InvitationView({ inv, messages = [], showGate = true, onEdit = null }) {
   const [musicOn, setMusicOn] = useState(false);
+  const scroller = useRef(null);
   const editing = Boolean(onEdit);
 
   const t = UI[inv.lang] ?? UI.uz;
@@ -38,6 +41,9 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
     ? `${inv.venueLat},${inv.venueLng}`
     : encodeURIComponent([inv.venueName, inv.venueAddress].filter(Boolean).join(", "));
 
+  // Re-runs when the draft changes so sections added in the admin get observed.
+  useReveal(scroller, [inv, editing]);
+
   /** Editable region: a pencil in the admin, nothing on the public page. */
   const Edit = ({ group, label, children }) => {
     if (!editing) return children;
@@ -58,6 +64,7 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
              className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20" />
       )}
       <Ambient />
+      <Petals />
 
       {/* Definite width: .book is 100% wide, and a bare flex item would resolve
           that against its own content — circular, collapsing the book. */}
@@ -67,13 +74,18 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
             <div className="gutter" aria-hidden />
 
             {/* One continuous scroll — no page turning. */}
-            <div className="no-bar h-full overflow-x-clip overflow-y-auto overscroll-contain">
+            <div ref={scroller} className="no-bar h-full overflow-x-clip overflow-y-auto overscroll-contain">
               <div className="flex flex-col px-7 pl-9 sm:px-10 sm:pl-12">
 
                 {/* ── Cover ─────────────────────────────────────────── */}
-                <section className="relative flex min-h-[calc(100%-1rem)] flex-col items-center justify-center py-14 text-center">
-                  <Corner className="pointer-events-none absolute top-2 -left-2 h-12 w-12 sm:h-16 sm:w-16" />
-                  <Corner className="pointer-events-none absolute top-2 -right-2 h-12 w-12 rotate-90 sm:h-16 sm:w-16" />
+                {/* A definite height, not a percentage: the flex parent is
+                    auto-height, so min-h-full would resolve to nothing, the
+                    cover would collapse, and every section below it would be on
+                    screen at once — killing the scroll reveals. */}
+                <section className="relative flex min-h-[min(calc(100dvh-5.5rem),50rem)] flex-col items-center justify-center py-14 text-center">
+                  <FloralCorner className="pointer-events-none absolute -top-1 -left-7 w-28 opacity-90 sm:w-36" />
+                  <FloralCorner flip className="pointer-events-none absolute -top-1 -right-5 w-24 opacity-80 sm:w-32" />
+                  <FloralCorner flip className="pointer-events-none absolute -bottom-2 -left-6 w-20 rotate-180 opacity-60 sm:w-24" />
 
                   {(inv.epigraph || editing) && (
                     <Edit group="epigraph" label="Epigraf">
@@ -260,9 +272,11 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
                 )}
 
                 {/* ── Closing ───────────────────────────────────────── */}
-                <section className="flex flex-col items-center py-14 text-center">
-                  <Divider />
-                  <p className="font-script mt-6" style={{ color: "var(--accent)", fontSize: "clamp(1.8rem, 9vw, 2.8rem)" }}>
+                <FloralDivider className="py-2" />
+                <section className="fade-up relative flex flex-col items-center pt-4 pb-16 text-center">
+                  <Sprig className="pointer-events-none absolute -top-2 -left-5 w-12 opacity-70" />
+                  <Sprig flip className="pointer-events-none absolute -top-2 -right-5 w-12 opacity-70" />
+                  <p className="font-script mt-4" style={{ color: "var(--accent)", fontSize: "clamp(1.9rem, 10vw, 3rem)" }}>
                     {t.theBigDay}
                   </p>
                   {names.length > 0 && (
@@ -270,7 +284,7 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
                       {names.join(" & ")}
                     </p>
                   )}
-                  <Divider className="mt-6" />
+                  <Divider className="mt-7" />
                 </section>
               </div>
             </div>
@@ -290,11 +304,13 @@ export default function InvitationView({ inv, messages = [], showGate = true, on
   );
 }
 
-/** A scroll section, separated from the previous one by a fold crease. */
+/** A scroll section: a floral divider above it, then its content fading up as
+ *  it scrolls into view. */
 function Section({ children }) {
   return (
-    <section className="border-t py-11" style={{ borderColor: "color-mix(in srgb, var(--ink) 12%, transparent)" }}>
-      {children}
-    </section>
+    <>
+      <FloralDivider className="py-2" />
+      <section className="fade-up pt-2 pb-10">{children}</section>
+    </>
   );
 }

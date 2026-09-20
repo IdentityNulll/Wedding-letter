@@ -54,8 +54,16 @@ body {
 }
 
 .font-display { font-family: "Cormorant Garamond", "Times New Roman", serif; }
-/* Great Vibes is Latin-only — Marck Script catches Cyrillic glyph by glyph. */
-.font-script  { font-family: "Great Vibes", "Marck Script", cursive; }
+
+/* Pinyon Script is the formal copperplate in the reference. It and Great Vibes
+   are both Latin-only, so Marck Script sits last to catch Cyrillic — CSS falls
+   back per glyph, so a Russian invitation stays in a script face instead of
+   dropping to a default sans mid-word. */
+.font-script {
+  font-family: "Pinyon Script", "Great Vibes", "Marck Script", cursive;
+  /* Copperplate sits small for its point size and its ascenders are tall. */
+  line-height: 1.45;
+}
 
 /* Parchment: layered gradients + fractal noise, no image requests — the page
    must stay light on a phone on patchy mobile data. */
@@ -226,6 +234,53 @@ body {
 
 .env-flap, .env-fold { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 
+/* ── Scroll reveals ─────────────────────────────────────────────────────
+   A transition, not an animation: transitions cannot leave an element stuck
+   invisible if a frame is missed, and there is no animationend to depend on. */
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .85s cubic-bezier(.2,.7,.3,1), transform .85s cubic-bezier(.2,.7,.3,1);
+  will-change: opacity, transform;
+}
+.fade-up.is-in { opacity: 1; transform: none; }
+
+/* Children stagger in after their section. */
+.fade-up.is-in > * { animation: soft-rise .7s cubic-bezier(.2,.7,.3,1) both; }
+.fade-up.is-in > *:nth-child(2) { animation-delay: .09s; }
+.fade-up.is-in > *:nth-child(3) { animation-delay: .18s; }
+.fade-up.is-in > *:nth-child(4) { animation-delay: .27s; }
+@keyframes soft-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ── Petals ─────────────────────────────────────────────────────────────
+   Drifting down and swaying. Transform/opacity only, so each one stays on the
+   compositor and never triggers layout. */
+
+@keyframes petal-fall {
+  from { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: var(--peak, .75); }
+  88%  { opacity: var(--peak, .75); }
+  to   { transform: translate3d(var(--dx, 6vw), 112vh, 0) rotate(var(--spin, 420deg)); opacity: 0; }
+}
+@keyframes petal-sway {
+  0%, 100% { margin-left: 0; }
+  50%      { margin-left: var(--sway, 18px); }
+}
+
+.petal {
+  position: absolute;
+  top: 0;
+  /* Asymmetric radii make a petal silhouette without an extra SVG node. */
+  border-radius: 100% 0 100% 0;
+  will-change: transform, opacity;
+  animation: petal-fall linear infinite, petal-sway ease-in-out infinite alternate;
+}
+
+/* Slow breathing on the decorative sprigs. */
+@keyframes sway-soft { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+.sway { animation: sway-soft 7s ease-in-out infinite; transform-origin: top center; }
+
 /* ── Ambient motes ──────────────────────────────────────────────────────── */
 
 @keyframes drift {
@@ -246,7 +301,10 @@ body {
 .no-bar::-webkit-scrollbar { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .foil { animation: none; }
-  .mote { display: none; }
+  .foil, .sway { animation: none; }
+  .mote, .petal { display: none; }
+  /* Content must still be visible — never leave fade-up at opacity 0. */
+  .fade-up { opacity: 1; transform: none; transition: none; }
+  .fade-up.is-in > * { animation: none !important; }
   .env-open * { animation-duration: .01ms !important; animation-delay: 0ms !important; }
 }
