@@ -134,8 +134,44 @@ function Defs({ uid }) {
   );
 }
 
-/** Corner cluster, as in the reference image. */
-export function FloralCorner({ className = "", flip = false }) {
+/** Corner cluster.
+ *
+ *  Prefers a real watercolour PNG from /florals/ — drop one in and it is used
+ *  automatically, no code change. Painted florals cannot be reproduced in SVG,
+ *  so the drawn version below is only the fallback when no asset is present.
+ *  See client/public/florals/README.md. */
+/** True only once `src` has actually decoded.
+ *
+ *  Probing with `new Image()` rather than rendering an <img> and waiting for
+ *  onError matters: a missing asset renders at zero height first, which
+ *  collapses the cover and makes every section below it look on screen — the
+ *  scroll reveals then all fire at once. The drawn flowers show until a real
+ *  asset is confirmed, so layout never shifts. */
+function useAssetReady(src) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!src) return;
+    let live = true;
+    const probe = new Image();
+    probe.onload = () => { if (live) setReady(true); };
+    probe.src = src;
+    return () => { live = false; };
+  }, [src]);
+  return ready;
+}
+
+export function FloralCorner({ className = "", flip = false, src = "/florals/corner.png" }) {
+  const ready = useAssetReady(src);
+
+  if (!ready) return <DrawnCorner className={className} flip={flip} />;
+
+  return (
+    <img src={src} alt="" aria-hidden className={className}
+         style={flip ? { transform: "scaleX(-1)" } : undefined} />
+  );
+}
+
+function DrawnCorner({ className = "", flip = false }) {
   const uid = useId().replace(/:/g, "");
   return (
     <svg viewBox="0 0 190 165" className={className} aria-hidden
