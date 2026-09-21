@@ -14,7 +14,7 @@ export const UI = {
     openInGoogle: "Google xarita",
     musicOn: "Musiqa",
     theBigDay: "Kutib qolamiz!",
-    guestbookTitle: "Mehmonlar kitobi",
+    guestbookTitle: "Tilaklar",
     guestbookNote: "Yosh oilaga tilaklaringizni yozib qoldiring.",
     yourName: "Ismingiz (ixtiyoriy)",
     yourMessage: "Tilagingiz",
