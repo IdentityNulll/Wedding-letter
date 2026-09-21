@@ -86,7 +86,10 @@ export const api = {
       headers: { Authorization: `Bearer ${auth.get()}` },
       body: fd, // no Content-Type: the browser must set the multipart boundary
     });
-    if (!res.ok) throw new Error("upload failed");
-    return res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw Object.assign(new Error(data.error || `Upload failed (HTTP ${res.status})`), { status: res.status });
+    }
+    return data;
   },
 };

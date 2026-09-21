@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Router } from "express";
@@ -9,6 +10,7 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 const UPLOAD_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "uploads");
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const ALLOWED = new Map([
   ["image/jpeg", "jpg"],
