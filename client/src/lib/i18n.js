@@ -18,7 +18,7 @@ export const UI = {
     guestbookNote: "Yosh oilaga tilaklaringizni yozib qoldiring.",
     yourName: "Ismingiz (ixtiyoriy)",
     yourMessage: "Tilagingiz",
-    send: "Yuborish",
+    send: "Yuborish", 
     sent: "Rahmat! Tilagingiz qabul qilindi.",
     anonymous: "Mehmon",
     emptyGuestbook: "Hali tilaklar yo'q — birinchi bo'ling!",
