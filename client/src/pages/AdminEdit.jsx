@@ -80,7 +80,12 @@ export default function AdminEdit() {
   async function upload(files, done) {
     if (!files?.length) return;
     setBusy(true);
-    try { done((await api.upload(files)).paths); setDirty(true); }
+    try {
+      done((await api.upload(files)).paths);
+      setDirty(true);
+    } catch (err) {
+      setNote(err.message || "Yuklashda xatolik");
+    }
     finally { setBusy(false); }
   }
 
@@ -103,6 +108,7 @@ export default function AdminEdit() {
         </span>
         {note && <span className="shrink-0 text-xs text-green-400">{note}</span>}
         <button onClick={() => setPanel("manage")} className="shrink-0 rounded-md border border-stone-600 px-3 py-2 text-xs text-stone-200 hover:bg-stone-800">Havola</button>
+        <button onClick={() => setPanel("venue")} className="shrink-0 rounded-md border border-stone-600 px-3 py-2 text-xs text-stone-200 hover:bg-stone-800">Manzil</button>
         <button onClick={() => setPanel("theme")} className="shrink-0 rounded-md border border-stone-600 px-3 py-2 text-xs text-stone-200 hover:bg-stone-800">Sozlamalar</button>
         <button onClick={save} disabled={saving || !dirty}
                 className="shrink-0 rounded-md bg-white px-4 py-2 text-xs font-medium text-stone-900 disabled:opacity-40">
@@ -212,6 +218,15 @@ export default function AdminEdit() {
 
               {panel === "theme" && (
                 <>
+                  <button type="button" onClick={() => setPanel("venue")}
+                          className="flex min-h-11 items-center justify-between rounded-md border border-stone-300 px-3 text-left text-sm text-stone-800 hover:bg-stone-50">
+                    <span>
+                      <span className="block font-medium">To&apos;y joyi va xarita</span>
+                      <span className="mt-0.5 block text-xs text-stone-500">Google yoki Yandex Maps orqali joy tanlang</span>
+                    </span>
+                    <span aria-hidden>→</span>
+                  </button>
+
                   <div>
                     <span className="mb-2 block text-sm font-medium text-stone-700">Dizayn rangi</span>
                     <div className="grid grid-cols-2 gap-2">

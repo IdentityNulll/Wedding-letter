@@ -10,6 +10,7 @@ export default function LocationPicker({ name, address, lat, lng, onPick, onName
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState("idle");
+  const [provider, setProvider] = useState("google");
   const seq = useRef(0);
 
   // Debounced. `seq` guards against a slow earlier request landing after a
@@ -35,6 +36,17 @@ export default function LocationPicker({ name, address, lat, lng, onPick, onName
   }, [query]);
 
   const hasCoords = lat != null && lng != null;
+  const point = hasCoords ? `${Number(lat)},${Number(lng)}` : "";
+  const encodedPoint = encodeURIComponent(point);
+  const encodedLabel = encodeURIComponent([name, address].filter(Boolean).join(", "));
+  const mapSrc = provider === "google"
+    // maps.google.com serves the classic embed endpoint without requiring an
+    // Embed API key. www.google.com/maps is a full app and often refuses iframes.
+    ? `https://maps.google.com/maps?q=${encodedPoint}&z=17&output=embed`
+    : `https://yandex.com/map-widget/v1/?ll=${Number(lng)}%2C${Number(lat)}&z=17&pt=${Number(lng)},${Number(lat)},pm2rdm`;
+  const mapLink = provider === "google"
+    ? `https://www.google.com/maps/search/?api=1&query=${encodedPoint || encodedLabel}`
+    : `https://yandex.com/maps/?pt=${Number(lng)},${Number(lat)}&z=17&l=map`;
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -80,8 +92,27 @@ export default function LocationPicker({ name, address, lat, lng, onPick, onName
 
       {hasCoords ? (
         <div className="overflow-hidden rounded-md border border-stone-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-stone-50 px-3 py-2">
+            <div className="flex gap-1" role="tablist" aria-label="Xarita provayderi">
+              {[
+                ["google", "Google Maps"],
+                ["yandex", "Yandex Maps"],
+              ].map(([id, label]) => (
+                <button key={id} type="button" role="tab" aria-selected={provider === id}
+                        onClick={() => setProvider(id)}
+                        className={`rounded px-2.5 py-1.5 text-xs ${provider === id ? "bg-white font-medium text-stone-900 shadow-sm ring-1 ring-stone-200" : "text-stone-500 hover:text-stone-900"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <a href={mapLink} target="_blank" rel="noopener noreferrer"
+               className="text-xs font-medium text-stone-700 underline underline-offset-2">
+              Xaritada ochish ↗
+            </a>
+          </div>
           <iframe title="Tanlangan joy" className="block h-44 w-full" loading="lazy"
-            src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.005},${lat - 0.0035},${lng + 0.005},${lat + 0.0035}&layer=mapnik&marker=${lat},${lng}`} />
+            referrerPolicy="no-referrer-when-downgrade"
+            src={mapSrc} />
           <p className="bg-stone-50 px-3 py-2 text-xs text-stone-500">
             Belgilangan: {Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}
           </p>
