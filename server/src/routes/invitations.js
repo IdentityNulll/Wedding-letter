@@ -71,7 +71,8 @@ router.patch("/messages/:id", async (req, res) => {
 });
 
 router.delete("/messages/:id", async (req, res) => {
-  await Message.findByIdAndDelete(req.params.id);
+  const msg = await Message.findByIdAndDelete(req.params.id).lean();
+  if (!msg) return res.status(404).json({ error: "not found" });
   res.json({ ok: true });
 });
 

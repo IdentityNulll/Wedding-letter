@@ -334,8 +334,13 @@ export default function AdminEdit() {
                                 {m.hidden ? "Ko'rsatish" : "Yashirish"}
                               </button>
                               <button onClick={async () => {
-                                await api.deleteMessage(m._id);
-                                setMessages((list) => list.filter((x) => x._id !== m._id));
+                                if (!confirm("Bu tilakni o'chirishni xohlaysizmi? Bu amalni qaytarib bo'lmaydi.")) return;
+                                try {
+                                  await api.deleteMessage(m._id);
+                                  setMessages((list) => list.filter((x) => x._id !== m._id));
+                                } catch (err) {
+                                  setNote(err.message || "O'chirishda xatolik");
+                                }
                               }} className="px-1 py-2 text-red-600 underline underline-offset-4">O&apos;chirish</button>
                             </div>
                           </li>
